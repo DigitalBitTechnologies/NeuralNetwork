@@ -2,7 +2,7 @@
 import numpy as np
 import os
 import json
-from PreprocessingText import PreprocessingDataset
+from Preprocessing import PreprocessingDataset
 import matplotlib.pyplot as plt
 from rich.progress import track
 import mplcyberpunk
