@@ -65,6 +65,9 @@ class PreprocessingDataset:
                 NameFiles.append(arr[0])
                 TextFiles.append(Text)
                 print(Text)
+                
+            np.savez_compressed(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"), self.y)
+            print(np.load(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"))["arr_0"])
             # InputDatasetFile = open("Datasets/TTSInputDataset.json", "w", encoding ='utf-8')
             # json.dump(self.y, InputDatasetFile,ensure_ascii=False,sort_keys=True, indent=2)
             # InputDatasetFile.close()
