@@ -2,6 +2,9 @@
 posts.csv
 /model/
 /SpeechNeuralNetwork/Datasets/SpeechDataset
+/SpeechNeuralNetwork/Datasets/TTSDataset/
+/SpeechNeuralNetwork/Datasets/ASRDataset/
+/ImageDetection/Datasets/train.dataset
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
