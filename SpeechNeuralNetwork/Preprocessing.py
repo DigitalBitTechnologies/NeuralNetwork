@@ -9,6 +9,8 @@ from sklearn.preprocessing import LabelEncoder,OneHotEncoder
 from rich.progress import track
 import pandas as pd
 import re
+import gensim
+from gensim.models import Word2Vec
 
 # Подготовка датасета
 ProjectDir = os.path.dirname(os.path.realpath(__file__))
@@ -57,17 +59,52 @@ class PreprocessingDataset:
                         mfcc = librosa.feature.mfcc(y = audio,n_fft=512,n_mfcc=13,n_mels=40,hop_length=160,fmin=0,fmax=None,htk=False, sr = sample_rate)
                         mfcc = np.mean(mfcc.T,axis=0)
                         self.y.append(np.array(mfcc))
-            for column in df["000000_RUSLAN|С тревожным чувством берусь я за перо."][:255]:
+            for column in df["000000_RUSLAN|С тревожным чувством берусь я за перо."]:
                 arr = column.split("|")
-                Text = arr[1]
-                Text = Text.lower()
+                Text = arr[1].lower()
                 Text = re.sub(r'[^\w\s]','', Text)
                 NameFiles.append(arr[0])
-                TextFiles.append(Text)
-                print(Text)
-                
+                for word in Text.split():
+                    TextFiles.append([word])
+                # print(Text)
+            # DatasetFiles = list(os.walk(os.path.join(ProjectDir,"Datasets/ASRDataset"),topdown=True))
+            # for (root,dirs,files) in DatasetFiles:
+            #     for file in files[:256]:
+            #         if file.endswith('.txt'):
+            #             file = open(os.path.join(root,file),'r+',encoding="utf-8")
+            #             DataFile = file.read()
+            #             DataFile= DataFile.lower()
+            #             DataFile = re.sub(r'[^\w\s]','', DataFile)
+            #             for word in DataFile.split():
+            #                 if not word in TextFiles:
+            #                     TextFiles.append(word)
+            #             file.close()
+            model = Word2Vec(TextFiles, min_count=1,workers=4, window =4, sg = 1)
+            w2v = dict(zip(model.wv.index_to_key, model.wv.key_to_index))
+            dim = len(next(iter(w2v.values())))
+            def transform(X):
+                return np.array([
+                    np.mean([model.wv[w] for w in words if w in model.wv] 
+                            or [np.zeros(dim)], axis=0)
+                    for words in X
+                ])
+            del TextFiles
+            VectorizedData = []
+            for column in df["000000_RUSLAN|С тревожным чувством берусь я за перо."][:255]:
+                arr = column.split("|")
+                Text = arr[1].lower()
+                Text = re.sub(r'[^\w\s]','', Text)
+                VectorizedData.append(transform(Text))
+            self.x = np.squeeze(VectorizedData)
+            del VectorizedData
+            self.TrainInput = self.x
+            self.TrainTarget = self.y
+            del self.x
+            del self.y
+            return self.TrainInput,self.TrainTarget
+            # print(transform("С тревожным чувством берусь я за перо"))
             np.savez_compressed(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"), self.y)
-            print(np.load(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"))["arr_0"])
+            # print(np.load(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"))["arr_0"])
             # InputDatasetFile = open("Datasets/TTSInputDataset.json", "w", encoding ='utf-8')
             # json.dump(self.y, InputDatasetFile,ensure_ascii=False,sort_keys=True, indent=2)
             # InputDatasetFile.close()
