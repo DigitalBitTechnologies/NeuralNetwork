@@ -58,6 +58,7 @@ class PreprocessingDataset:
                         # print(audio)
                         mfcc = librosa.feature.mfcc(y = audio,n_fft=512,n_mfcc=13,n_mels=40,hop_length=160,fmin=0,fmax=None,htk=False, sr = sample_rate)
                         mfcc = np.mean(mfcc.T,axis=0)
+                        mfcc = np.round(mfcc, 0)
                         self.y.append(np.array(mfcc))
             for column in df["000000_RUSLAN|С тревожным чувством берусь я за перо."]:
                 arr = column.split("|")
@@ -98,9 +99,10 @@ class PreprocessingDataset:
             self.x = np.squeeze(VectorizedData)
             del VectorizedData
             self.TrainInput = self.x
-            self.TrainTarget = self.y
+            self.TrainTarget = np.array(self.y).astype(int)
             del self.x
             del self.y
+            print(self.TrainTarget[:1])
             return self.TrainInput,self.TrainTarget
             # print(transform("С тревожным чувством берусь я за перо"))
             np.savez_compressed(os.path.join(ProjectDir,"Datasets/TTSInputDataset.npz"), self.y)
