@@ -31,8 +31,8 @@ else:
     raise FileNotFoundError
 
 
-learning_rate = 0.001
-EPOCHS = 150000
+learning_rate = 0.002
+EPOCHS = 200000
 BATCH_SIZE = 50
 MinimalThreshold = 0.3
 FunctionTimes = []
@@ -46,14 +46,14 @@ class NeuralNetwork:
         self.CATEGORIES_TARGET = CATEGORIES_TARGET
         self.INPUT_DIM = 64
         self.HIDDEN_DIM_1 = 256
-        self.HIDDEN_DIM_2 = 512
+        self.HIDDEN_DIM_2 = 128
         self.OUTPUT_DIM = len(CATEGORIES_TARGET)
         self.GenerateWeights()
         self.LossArray = []
         self.Loss = 0
         self.LocalLoss = 0.5
-        self.PathLossGraph = os.path.join(ProjectDir,'Plots','ClassificationNeuralNetwork_Loss.png')
-        self.PathTimesBar = os.path.join(ProjectDir,'Plots','ClassificationNeuralNetwork_Times.png')
+        self.PathLossGraph = os.path.join(ProjectDir,'Plots','RNN_Loss.png')
+        self.PathTimesBar = os.path.join(ProjectDir,'Plots','RNN_Times.png')
         self.Accuracy = 0
         self.SoftmaxTime = None
         self.SigmoidTime = None
@@ -192,13 +192,13 @@ class NeuralNetwork:
         self.Training = True
         if hostname.startswith("rpi"):
             LED_Yellow()
-        logger.info("Neural network was started of training.")
+        logger.info("RNN was started of training.")
         # Генераци весов нейросети по длине входного массива(датасета)
         self.INPUT_DIM = len(TrainInput[0])
         # print(self.INPUT_DIM)
         self.GenerateWeights()
         # Прохождение по датасету циклом for
-        for epoch in track(range(EPOCHS), description='[green]Training TTS model'):
+        for epoch in track(range(EPOCHS), description='[green]Training RNN model'):
             # Вызов функции для расчёта прямого распространения нейросети
             PredictedValue = self.FeedForward(TrainInput)
             # Вызов функции для расчёта обратного распространения ошибки нейросети
@@ -258,12 +258,12 @@ class NeuralNetwork:
         return accuracy
     
     # Сохранение весов и смещений нейросети
-    def save(self,PathParametrs = os.path.join(ProjectDir,'Models','TTS.npz')):
+    def save(self,PathParametrs = os.path.join(ProjectDir,'Models','RNN.npz')):
         np.savez_compressed(PathParametrs, self.w1,self.w2,self.b1,self.b2,EPOCHS,learning_rate,BATCH_SIZE,MinimalThreshold)
         logger.info(f"Weights of neural network was saved to {PathParametrs}.")
 
     # Загрузка весов и смещений нейросети
-    def load(self,PathParametrs = os.path.join(ProjectDir,'Models','TTS.npz')):
+    def load(self,PathParametrs = os.path.join(ProjectDir,'Models','RNN.npz')):
         ParametrsFile = np.load(PathParametrs)
         self.w1 = ParametrsFile['arr_0']
         self.w2 = ParametrsFile['arr_1']
@@ -285,9 +285,18 @@ if __name__ == '__main__':
         elif command == "load":
             network.load()
         elif command == "save":
-            network.save()
+            path = input("Path(default=/Models/RNN.npz):")
+            if path == '':
+                network.save()
+            else:
+                network.save(path)
+
         elif command == "sande":
-            network.save()
+            path = input("Path(default=/Models/RNN.npz):")
+            if path == '':
+                network.save()
+            else:
+                network.save(path)
             if network.Finished == True:
                 # Вывод графика ошибки нейросети
                 plt.plot(network.LossArray)
